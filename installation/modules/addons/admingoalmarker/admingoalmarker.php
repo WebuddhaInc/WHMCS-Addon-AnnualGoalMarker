@@ -24,7 +24,15 @@ function admingoalmarker_config() {
       "licensekey"      => null,
       "fields"          => array(
 
-        "annual_target " => array (
+        "annual_target" => array (
+          "FriendlyName" => 'Annual Target',
+          "Type"         => "text",
+          "Description"  => 'Dollar value to use when comparing current annual income',
+          "Default"      => "100000",
+          "Size"         => "64"
+          ),
+
+        "annual_target" => array (
           "FriendlyName" => 'Annual Target',
           "Type"         => "text",
           "Description"  => 'Dollar value to use when comparing current annual income',

@@ -13,6 +13,20 @@
       return;
 
     /**
+     * Permission
+     * Need to block based on Module Permission
+     */
+
+    /**
+     * Language
+     */
+    $language = isset($GLOBALS['admin']['language']) ? $GLOBALS['admin']['language'] : 'english';
+    if (file_exists(__DIR__.'/lang/' . $language . '.php'))
+      include __DIR__.'/lang/' . $language . '.php';
+    else
+      include __DIR__.'/lang/english.php';
+
+    /**
      * Database Handler
      */
     $db = wbDatabase::getInstance();
@@ -21,15 +35,30 @@
      * Pull Module Configuration
      */
     $db->runQuery("
-      SELECT `value`
+      SELECT `setting`, `value`
       FROM `tbladdonmodules`
       WHERE `module` = 'admingoalmarker'
-        AND `setting` = 'annual_target'
       ");
-    $annual_target = (real)$db->getValue();
+    $settingRows = $db->getRows();
+    foreach ($settingRows AS $settingRow) {
+      $setting[ $settingRow['setting'] ] = $settingRow['value'];
+    }
+    $annual_target  = (real)(isset($setting['annual_target']) ? $setting['annual_target'] : 100000);
+    $invoice_filter = (array)(isset($setting['invoice_filter']) ? $setting['invoice_filter'] : array('Paid', 'Unpaid', 'Overdue', 'Collections'));
 
     /**
      * Pull Total
+     */
+    $db->runQuery("
+      SELECT SUM(`total`)
+      FROM `tblinvoices` AS `invoice`
+      WHERE `status` IN ('". implode("','", $invoice_filter) ."')
+        AND `date` >= '". date('Y') ."-01-01'
+      ");
+    $invoiceTotal = $db->getValue();
+
+    /**
+     * Pull Total Paid
      */
     $db->runQuery("
       SELECT SUM(`total`)
@@ -56,13 +85,13 @@
       ");
     $transactionAmountTotal = $db->getValue();
 
-    $current_year     = (int)date('Y');
-    $current_month    = (int)date('m');
-    $current_day      = (int)date('d');
-    $current_daysinmo = cal_days_in_month(CAL_GREGORIAN, $current_month, $current_year);
-    $current_target   = (($current_month - 1) + ($current_day / $current_daysinmo)) * ($annual_target / 12);
-    $current_position = round(($invoiceTotalPaid / $current_target) * 100, 2);
-    $current_status   = (abs($current_position) > 100 ? "ahead" : (abs($current_position) < 100 ? "behind" : "on"));
+    $current_year       = (int)date('Y');
+    $current_month      = (int)date('m');
+    $current_day        = (int)date('d');
+    $current_daysinmo   = cal_days_in_month(CAL_GREGORIAN, $current_month, $current_year);
+    $current_target     = (($current_month - 1) + ($current_day / $current_daysinmo)) * ($annual_target / 12);
+    $current_position   = round(($invoiceTotal / $current_target) * 100);
+    $current_status     = (abs($current_position) > 100 ? "ahead" : (abs($current_position) < 100 ? "behind" : "on"));
 
     ob_start();
     ?>
@@ -87,10 +116,14 @@
       .admingoalmarker_report .target_report.ahead {
         background: green;
       }
-      .admingoalmarker_report .target_report b {
+      .admingoalmarker_report .target_report > div {
+        display: inline-block;
         margin-right: 10px;
         padding-right: 15px;
         border-right: 2px solid white;
+      }
+      .admingoalmarker_report .target_report > div:last-child {
+        border-right: none;
       }
       .admingoalmarker_report .collection_report {
         display: inline-block;
@@ -98,16 +131,41 @@
         color: white;
         background: gray;
         padding: 5px 10px;
+        margin: 0 6px;
         border-radius: 0 0 4px 4px;
+      }
+      .admingoalmarker_report .collection_report > div {
+        display: inline-block;
+        margin-right: 5px;
+        padding-right: 10px;
+        border-right: 2px solid white;
+      }
+      .admingoalmarker_report .collection_report > div:last-child {
+        border-right: none;
       }
     </style>
     <div class="admingoalmarker_report">
       <div class="target_report <?= $current_status ?>">
-        <b><?= abs(100 - $current_position) ?>% <?= ucfirst($current_status) ?> of schedule</b>
-        <?= $current_position ?>% of today's target position of <?= formatCurrency($current_target) ?>
+        <div class="invoiced_total">
+          <?= sprintf($_ADDONLANG['invoiced_total'], date('Y'), formatCurrency($invoiceTotal)) ?>
+        </div>
+        <div class="current_position">
+          <?= sprintf($_ADDONLANG['current_position_' . $current_status], $current_position, formatCurrency($invoiceTotal)) ?>
+        </div>
       </div>
       <div class="collection_report">
-        <?= date('Y') ?> Invoiced <?= formatCurrency($invoiceTotalPaid) ?>, Collected <?= formatCurrency($transactionAmountTotal) ?> - Fees <?= formatCurrency($accountFeesTotal) ?> = <?= formatCurrency($transactionAmountTotal - $accountFeesTotal) ?>
+        <div class="total_unpaid">
+          <?= sprintf($_ADDONLANG['total_unpaid'], formatCurrency($invoiceTotal - $invoiceTotalPaid)) ?>
+        </div>
+        <div class="total_collected">
+          <?= sprintf($_ADDONLANG['total_collected'], formatCurrency($transactionAmountTotal)) ?>
+        </div>
+        <div class="total_fees">
+          <?= sprintf($_ADDONLANG['total_fees'], formatCurrency($accountFeesTotal)) ?>
+        </div>
+        <div class="total_net">
+          <?= sprintf($_ADDONLANG['total_net'], formatCurrency($transactionAmountTotal - $accountFeesTotal)) ?>
+        </div>
       </div>
     </div>
     <?php
