@@ -150,7 +150,7 @@
           <?= sprintf($_ADDONLANG['invoiced_total'], date('Y'), formatCurrency($invoiceTotal)) ?>
         </div>
         <div class="current_position">
-          <?= sprintf($_ADDONLANG['current_position_' . $current_status], $current_position, formatCurrency($invoiceTotal)) ?>
+          <?= sprintf($_ADDONLANG['current_position_' . $current_status], $current_position, formatCurrency($current_target)) ?>
         </div>
       </div>
       <div class="collection_report">
