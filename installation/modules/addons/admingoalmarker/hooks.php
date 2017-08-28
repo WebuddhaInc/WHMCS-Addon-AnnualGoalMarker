@@ -64,7 +64,8 @@
       SELECT SUM(`total`)
       FROM `tblinvoices` AS `invoice`
       WHERE `status` = 'Paid'
-        AND `datepaid` >= '". date('Y') ."-01-01'
+        AND `date` >= '". date('Y') ."-01-01'
+        -- AND `datepaid` >= '". date('Y') ."-01-01'
       ");
     $invoiceTotalPaid = $db->getValue();
 
@@ -150,7 +151,7 @@
           <?= sprintf($_ADDONLANG['invoiced_total'], date('Y'), formatCurrency($invoiceTotal)) ?>
         </div>
         <div class="current_position">
-          <?= sprintf($_ADDONLANG['current_position_' . $current_status], $current_position, formatCurrency($current_target)) ?>
+          <?= sprintf($_ADDONLANG['current_position_' . $current_status], ($current_position > 100 ? $current_position - 100 : 100 - $current_position), formatCurrency($current_target)) ?>
         </div>
       </div>
       <div class="collection_report">

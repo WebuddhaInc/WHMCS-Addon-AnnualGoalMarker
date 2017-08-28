@@ -8,4 +8,8 @@ for the years financial goal.
 
 - Add the contents of the `installation` folder into your WHMCS root folder.
 - Activate the module under the WHMCS Addons page
-- Set your annual target amount
+- Set your annual target amount and select administrative roles
+
+## Screenshot
+
+![WHMCS Addon Annual Goal Maker](https://raw.githubusercontent.com/WebuddhaInc/WHMCS-Addon-AnnualGoalMarker/master/screenshot.png)
