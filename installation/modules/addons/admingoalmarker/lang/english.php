@@ -4,9 +4,9 @@ $_ADDONLANG = array(
 
   'invoiced_total'          => '%s Invoiced %s',
 
-  'current_position_on'     => '%s%% of today\' target of %s',
-  'current_position_ahead'  => '%s%% ahead of today\' target of %s',
-  'current_position_behind' => '%s%% behind today\' target of %s',
+  'current_position_on'     => '%s%% of today\'s target of %s',
+  'current_position_ahead'  => '%s%% ahead of today\'s target of %s',
+  'current_position_behind' => '%s%% behind today\'s target of %s',
 
   'total_unpaid'            => 'Unpaid %s',
   'total_collected'         => 'Collected %s',
