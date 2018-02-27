@@ -1,7 +1,13 @@
 <?php
 
 /**
- *
+ * Include wbDatabase
+ */
+  if (defined('ROOTDIR'))
+    require_once ROOTDIR . '/modules/addons/wbDatabase.php';
+
+/**
+ * Render Homepage Widget
  */
   add_hook('AdminHomepage', 1, function ( $vars )
   {

@@ -16,7 +16,7 @@ function admingoalmarker_config() {
     $configarray = array(
       "name"            => "Admin Goal Marker",
       "description"     => "Places a goal marker on the top/right of the admin dashboard",
-      "version"         => "1.0.0.0",
+      "version"         => "1.1.0.0",
       "release"         => "stable",
       "release_filter"  => "stable,rc",
       "author"          => "Holodyn, Inc.",

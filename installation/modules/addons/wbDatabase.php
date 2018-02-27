@@ -78,6 +78,7 @@
   * v3.2.1 - Changed default connector to PDO before MySQLi
   * v3.3.0 - Added prepareQuery method to prepare PDO statements for MySQL
   * v3.3.1 - Added empty result check
+  * v3.3.2 - Modify WHMCS configuration include handler
   *
   **********************************************************/
 
@@ -88,7 +89,7 @@ class wbDatabase {
   /**********************************************************
   *
   **********************************************************/
-  private static $_version  = '3.2.1';
+  private static $_version  = '3.3.2';
   private static $_instance = null;
   public $_dbh              = null;
   private $_driver          = 'pdo';
@@ -155,26 +156,28 @@ class wbDatabase {
   private function __construct_whmcs(){
 
     // Import Values
-      global $whmcsmysql, $cc_encryption_hash, $mysql_charset;
+      global $cc_encryption_hash, $mysql_charset;
       global $db_type, $db_port, $db_host, $db_name, $db_username, $db_password;
-      if( !defined('ROOTDIR') ){
-        $_tmp = explode(DIRECTORY_SEPARATOR, dirname(__FILE__));
-        for($i=0;$i<2;$i++) array_pop($_tmp);
-        $ROOTDIR = implode(DIRECTORY_SEPARATOR,$_tmp); unset($_tmp);
-      } else
-        $ROOTDIR = ROOTDIR;
-      if( file_exists($ROOTDIR.DIRECTORY_SEPARATOR.'configuration.php') )
-        require($ROOTDIR.DIRECTORY_SEPARATOR.'configuration.php');
+      if (!isset($db_host) || !isset($db_name) || !isset($db_username)) {
+        if( !defined('ROOTDIR') ){
+          $_tmp = explode(DIRECTORY_SEPARATOR, dirname(__FILE__));
+          for($i=0;$i<2;$i++) array_pop($_tmp);
+          $ROOTDIR = implode(DIRECTORY_SEPARATOR,$_tmp); unset($_tmp);
+        } else
+          $ROOTDIR = ROOTDIR;
+        if( file_exists($ROOTDIR.DIRECTORY_SEPARATOR.'configuration.php') )
+          require_once($ROOTDIR.DIRECTORY_SEPARATOR.'configuration.php');
+      }
 
     // Default Config
       if (@$db_type) $this->setCfgVal( 'type', $db_type );
       if (@$db_port) $this->setCfgVal( 'port', $db_port );
-      $this->setCfgVal( 'host',   $db_host );
-      $this->setCfgVal( 'name',   $db_name );
-      $this->setCfgVal( 'user',   $db_username );
-      $this->setCfgVal( 'pass',   $db_password );
-      $this->setCfgVal( 'hash',   $cc_encryption_hash );
-      $this->setCfgVal( 'encode', isset($mysql_charset) ? $mysql_charset : '' );
+      $this->setCfgVal( 'host',    $db_host );
+      $this->setCfgVal( 'name',    $db_name );
+      $this->setCfgVal( 'user',    $db_username );
+      $this->setCfgVal( 'pass',    $db_password );
+      $this->setCfgVal( 'hash',    $cc_encryption_hash );
+      $this->setCfgVal( 'encode',  isset($mysql_charset) ? $mysql_charset : '' );
 
   }
 
@@ -567,7 +570,7 @@ class wbDatabase {
       return $row;
     if( $this->_driver == 'pdo' ){
       if (empty($this->_result_cache))
-        $this->_result_cache = $this->_result->fetchAll(PDO::FETCH_ASSOC);
+        $this->_result_cache = ($this->_result instanceof PDOStatement) ? $this->_result->fetchAll(PDO::FETCH_ASSOC) : null;
       if (!is_null($item))
         $this->_result_index = (int)$item;
       return $this->_result_cache[ $this->_result_index++ ];
@@ -594,7 +597,7 @@ class wbDatabase {
       return $row;
     if( $this->_driver == 'pdo' ){
       if (empty($this->_result_cache))
-        $this->_result_cache = $this->_result->fetchAll(PDO::FETCH_ASSOC);
+        $this->_result_cache = ($this->_result instanceof PDOStatement) ? $this->_result->fetchAll(PDO::FETCH_ASSOC) : null;
       for( $i=0; $i<($num-(is_null($start)?0:$start)); $i++ )
         if( is_null($limit) || count($rows) < $limit )
           $rows[] = @$this->_result_cache[ $i ];
@@ -662,7 +665,7 @@ class wbDatabase {
     if( empty($this->_result) )
       return 0;
     if( $this->_driver == 'pdo' )
-      return method_exists($this->_result, 'rowCount') ? $this->_result->rowCount() : 0;
+      return ($this->_result instanceof PDOStatement) ? $this->_result->rowCount() : 0;
     else if( $this->_driver == 'mysqli' )
       return mysqli_num_rows($this->_result);
     else
