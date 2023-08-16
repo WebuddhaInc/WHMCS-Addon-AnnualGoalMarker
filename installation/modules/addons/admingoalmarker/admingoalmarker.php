@@ -16,7 +16,7 @@ function admingoalmarker_config() {
     $configarray = array(
       "name"            => "Admin Goal Marker",
       "description"     => "Places a goal marker on the top/right of the admin dashboard",
-      "version"         => "1.1.0.0",
+      "version"         => "1.2.0.0",
       "release"         => "stable",
       "release_filter"  => "stable,rc",
       "author"          => "Holodyn, Inc.",
@@ -24,18 +24,26 @@ function admingoalmarker_config() {
       "licensekey"      => null,
       "fields"          => array(
 
+        "float_display" => array (
+          "FriendlyName" => 'Float on Dashboard',
+          "Description"  => 'Float on the top-right of admin dashboard (vs using widget)',
+          "Type"         => "dropdown",
+          "Options"      => 'No,Yes',
+          "Default"      => "No"
+          ),
+
         "annual_target" => array (
           "FriendlyName" => 'Annual Target',
-          "Type"         => "text",
           "Description"  => 'Dollar value to use when comparing current annual income',
+          "Type"         => "text",
           "Default"      => "100000",
           "Size"         => "64"
           ),
 
         "annual_target" => array (
           "FriendlyName" => 'Annual Target',
-          "Type"         => "text",
           "Description"  => 'Dollar value to use when comparing current annual income',
+          "Type"         => "text",
           "Default"      => "100000",
           "Size"         => "64"
           )
